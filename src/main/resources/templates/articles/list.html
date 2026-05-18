@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<!-- Balise html avec le namespace security -->
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Articles</title>
@@ -40,9 +42,11 @@
         </div>
     </form>
 
-    <!-- Bouton ajouter -->
-    <a th:href="@{/articles/new}" class="btn btn-success mb-3">+ Nouvel Article</a>
-
+	<!-- Bouton Nouvel Article : visible seulement pour ADMIN -->
+	<a th:href="@{/articles/new}" 
+	   sec:authorize="hasRole('ADMIN')"
+	   class="btn btn-success mb-3">+ Nouvel Article</a>
+   
     <!-- Tableau des articles -->
     <table class="table table-bordered table-hover">
         <thead class="table-primary">
@@ -63,15 +67,17 @@
                 <td th:text="${article.prix} + ' DH'"></td>
                 <td th:text="${article.dateExpiration}"></td>
                 <td th:text="${article.quantiteStock}"></td>
-                <td>
-                    <!-- Bouton modifier -->
-                    <a th:href="@{/articles/edit/{id}(id=${article.id})}" 
-                       class="btn btn-warning btn-sm">Modifier</a>
-                    <!-- Bouton supprimer -->
-                    <a th:href="@{/articles/delete/{id}(id=${article.id})}" 
-                       class="btn btn-danger btn-sm"
-                       onclick="return confirm('Supprimer cet article ?')">Supprimer</a>
-                </td>
+                <!-- Boutons Modifier et Supprimer : visibles seulement pour ADMIN -->
+				<td>
+				    <a th:href="@{/articles/edit/{id}(id=${article.id})}"
+				       sec:authorize="hasRole('ADMIN')"
+				       class="btn btn-warning btn-sm">Modifier</a>
+				
+				    <a th:href="@{/articles/delete/{id}(id=${article.id})}"
+				       sec:authorize="hasRole('ADMIN')"
+				       class="btn btn-danger btn-sm"
+				       onclick="return confirm('Supprimer cet article ?')">Supprimer</a>
+				</td>
             </tr>
             <!-- Message si aucun article -->
             <tr th:if="${#lists.isEmpty(articles)}">

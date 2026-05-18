@@ -34,14 +34,18 @@ public class SecurityConfig {
 
         http
             // --- Règles d'accès aux URLs ---
-            .authorizeHttpRequests(auth -> auth
-
-                // Ces pages sont accessibles SANS être connecté
-                .requestMatchers("/login", "/css/**", "/js/**").permitAll()
-
-                // Toutes les autres pages nécessitent d'être connecté
-                .anyRequest().authenticated()
-            )
+	        .authorizeHttpRequests(auth -> auth
+	
+	        	    // Pages publiques sans connexion
+	        	    .requestMatchers("/login", "/css/**", "/js/**").permitAll()
+	
+	        	    // Seulement ADMIN peut créer, modifier, supprimer
+	        	    .requestMatchers("/articles/new", "/articles/save",
+	        	                     "/articles/edit/**", "/articles/delete/**").hasRole("ADMIN")
+	
+	        	    // Toutes les autres pages → juste être connecté
+	        	    .anyRequest().authenticated()
+	        	)
 
             // --- Configuration de la page de login ---
             .formLogin(form -> form
