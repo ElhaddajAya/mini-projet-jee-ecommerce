@@ -3,7 +3,7 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout :: layout(~{::title}, ~{::section})}">
 <head>
-    <title>Commandes — Mini JEE Shop</title>
+    <title>Commandes — Mini Shop</title>
 </head>
 <body>
 <section>
@@ -74,28 +74,28 @@
                     </ul>
                 </div>
 
-                <div class="card-footer bg-white d-flex gap-2">
-                    <!-- Détails : toujours visible -->
-                    <a th:href="@{/commandes/{id}(id=${commande.id})}"
-                       class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye me-1"></i>Détails
-                    </a>
-
-                    <!-- Modifier → panier : USER seulement, commande EN_COURS -->
-                    <a th:if="${!isAdmin and commande.statut == 'EN_COURS'}"
-                       th:href="@{/panier}"
-                       class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil me-1"></i>Modifier
-                    </a>
-
-                    <!-- Supprimer : ADMIN seulement -->
-                    <a th:if="${isAdmin}"
-                       th:href="@{/commandes/{id}/supprimer(id=${commande.id})}"
-                       class="btn btn-sm btn-danger"
-                       onclick="return confirm('Supprimer définitivement cette commande ?')">
-                        <i class="bi bi-trash me-1"></i>Supprimer
-                    </a>
-                </div>
+				<div class="card-footer bg-white d-flex gap-2">
+				    <!-- Détails : toujours visible -->
+				    <a th:href="@{/commandes/{id}(id=${commande.id})}"
+				       class="btn btn-sm btn-outline-primary">
+				        <i class="bi bi-eye me-1"></i>Détails
+				    </a>
+				
+				    <!-- Modifier → panier : USER seulement, commande EN_COURS -->
+				    <a th:if="${!isAdmin and commande.statut == 'EN_COURS'}"
+				       th:href="@{/panier}"
+				       class="btn btn-sm btn-warning">
+				        <i class="bi bi-pencil me-1"></i>Modifier
+				    </a>
+				
+				    <!-- Supprimer : ADMIN seulement -->
+				    <a th:if="${isAdmin}"
+				       th:href="@{/commandes/{id}/supprimer(id=${commande.id})}"
+				       class="btn btn-sm btn-danger"
+				       onclick="return confirm('Supprimer définitivement cette commande ?')">
+				        <i class="bi bi-trash me-1"></i>Supprimer
+				    </a>
+				</div>
             </div>
         </div>
     </div>

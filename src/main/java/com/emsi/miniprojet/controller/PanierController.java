@@ -17,15 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- * Controller Panier — Partenaire B
- *
- * Affiche le panier de l'utilisateur connecté avec :
- *   - toutes ses commandes EN_COURS
- *   - le total dynamique de chaque commande
- *   - le total général du panier
- *   - les boutons pour valider chaque commande
- */
 @Controller
 @RequestMapping("/panier")
 @RequiredArgsConstructor
