@@ -5,6 +5,9 @@ import com.emsi.miniprojet.service.ArticleService;
 import com.emsi.miniprojet.service.CommandeService;
 import com.emsi.miniprojet.service.UserService;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -13,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Controller Commande — Partenaire B
+ * Controller Commande
  *
  * Gère toutes les URLs liées aux commandes :
  *   GET  /commandes              → liste "mes commandes" (dashboard)
@@ -41,10 +44,21 @@ public class CommandeController {
     // ─────────────────────────────────────────────────────────────────────────
     @GetMapping
     public String mesCommandes(@AuthenticationPrincipal UserDetails ud, Model model) {
-        // Récupère l'entité User depuis le username Spring Security
-        User user = userService.findByUsername(ud.getUsername());
-        model.addAttribute("commandes", commandeService.findByUser(user));
-        return "commandes/commande-list"; // → templates/commandes/commande-list.html
+        // Vérifie si l'utilisateur est ADMIN
+        boolean isAdmin = ud.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (isAdmin) {
+            // ADMIN voit TOUTES les commandes de tous les utilisateurs
+            model.addAttribute("commandes", commandeService.findAll());
+            model.addAttribute("isAdmin", true);
+        } else {
+            // USER voit seulement ses propres commandes
+            User user = userService.findByUsername(ud.getUsername());
+            model.addAttribute("commandes", commandeService.findByUser(user));
+            model.addAttribute("isAdmin", false);
+        }
+        return "commandes/commande-list";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -55,19 +69,6 @@ public class CommandeController {
         model.addAttribute("commande", commandeService.findById(id));
         model.addAttribute("articles", articleService.findAll()); // liste déroulante
         return "commandes/commande-detail"; // → templates/commandes/commande-detail.html
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Créer une nouvelle commande EN_COURS pour l'utilisateur connecté
-    // ─────────────────────────────────────────────────────────────────────────
-    @GetMapping("/new")
-    public String nouvelleCommande(@AuthenticationPrincipal UserDetails ud,
-                                   RedirectAttributes ra) {
-        User user = userService.findByUsername(ud.getUsername());
-        var commande = commandeService.creerCommande(user);
-        ra.addFlashAttribute("successMessage",
-                "Commande #" + commande.getId() + " créée ! Ajoutez des articles.");
-        return "redirect:/commandes/" + commande.getId();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -124,4 +125,39 @@ public class CommandeController {
         ra.addFlashAttribute("successMessage", "Commande annulée.");
         return "redirect:/commandes";
     }
+    
+	 // POST /commandes/{id}/valider-final
+	 // Reçoit les quantités finales depuis le formulaire JS et valide
+	 @PostMapping("/{id}/valider-final")
+	 public String validerFinal(@PathVariable Long id,
+	                            @RequestParam Map<String, String> formData,
+	                            RedirectAttributes ra) {
+	     try {
+	         // Construit la map itemId → quantite depuis les paramètres du formulaire
+	         // Les inputs s'appellent "quantite_123" (123 = itemId)
+	         Map<Long, Integer> quantites = new java.util.HashMap<>();
+	         formData.forEach((key, value) -> {
+	             if (key.startsWith("quantite_")) {
+	                 Long itemId = Long.parseLong(key.replace("quantite_", ""));
+	                 Integer q = Integer.parseInt(value);
+	                 quantites.put(itemId, q);
+	             }
+	         });
+	
+	         commandeService.mettreAJourEtValider(id, quantites);
+	         ra.addFlashAttribute("successMessage", "Commande validée ! Les stocks ont été mis à jour.");
+	     } catch (RuntimeException e) {
+	         ra.addFlashAttribute("errorMessage", e.getMessage());
+	         return "redirect:/commandes/" + id;
+	     }
+	     return "redirect:/commandes";
+	 }
+	 
+	// Supprime une commande (ADMIN seulement)
+	 @GetMapping("/{id}/supprimer")
+	 public String supprimer(@PathVariable Long id, RedirectAttributes ra) {
+	     commandeService.deleteById(id);
+	     ra.addFlashAttribute("successMessage", "Commande supprimée.");
+	     return "redirect:/commandes";
+	 }
 }

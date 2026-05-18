@@ -3,6 +3,8 @@ package com.emsi.miniprojet.service;
 import com.emsi.miniprojet.entity.*;
 import com.emsi.miniprojet.repository.*;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -174,5 +176,47 @@ public class CommandeService {
     @Transactional
     public void deleteById(Long id) {
         commandeRepository.deleteById(id);
+    }
+    
+    // Met à jour toutes les quantités ET valide en une seule transaction
+    @Transactional
+    public void mettreAJourEtValider(Long commandeId, Map<Long, Integer> quantites) {
+        Commande commande = findById(commandeId);
+
+        // Supprime les items avec quantité = 0
+        commande.getItems().removeIf(i -> {
+            Integer q = quantites.get(i.getId());
+            return q == null || q <= 0;
+        });
+
+        // Met à jour les quantités restantes
+        commande.getItems().forEach(item -> {
+            Integer q = quantites.get(item.getId());
+            if (q != null && q > 0) {
+                item.setQuantite(q);
+            }
+        });
+
+        // Vérifie qu'il reste au moins 1 article
+        if (commande.getItems().isEmpty()) {
+            throw new RuntimeException(
+                "Impossible de valider : la commande doit contenir au moins un article."
+            );
+        }
+
+        // Décrémente les stocks
+        commande.getItems().forEach(item -> {
+            Article article = item.getArticle();
+            article.setQuantiteStock(article.getQuantiteStock() - item.getQuantite());
+            articleRepository.save(article);
+        });
+
+        commande.setStatut("VALIDEE");
+        commandeRepository.save(commande);
+    }
+    
+    // Retourne toutes les commandes (vue admin)
+    	public List<Commande> findAll() {
+        return commandeRepository.findAll();
     }
 }

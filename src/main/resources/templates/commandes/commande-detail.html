@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout :: layout(~{::title}, ~{::section})}">
 <head>
     <title>Commande — Mini JEE Shop</title>
@@ -8,22 +7,21 @@
 <body>
 <section>
 
-    <!-- ── En-tête ──────────────────────────────────────────────────────────── -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">
             <i class="bi bi-receipt me-2 text-primary"></i>
             Commande #<span th:text="${commande.id}"></span>
         </h2>
         <a th:href="@{/commandes}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Retour à mes commandes
+            <i class="bi bi-arrow-left me-1"></i>Retour
         </a>
     </div>
 
     <div class="row g-4">
 
-        <!-- ── Colonne gauche : Informations de la commande ─────────────────── -->
+        <!-- Informations -->
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light fw-semibold">
                     <i class="bi bi-info-circle me-2"></i>Informations
                 </div>
@@ -37,9 +35,8 @@
 
                         <dt class="col-5 text-muted">Statut</dt>
                         <dd class="col-7">
-                            <span th:class="${commande.statut == 'EN_COURS'}  ? 'badge bg-warning text-dark' :
-                                            (${commande.statut == 'VALIDEE'}  ? 'badge bg-success'          :
-                                                                                 'badge bg-danger')"
+                            <span th:class="${commande.statut == 'EN_COURS'} ? 'badge bg-warning text-dark' :
+                                            (${commande.statut == 'VALIDEE'} ? 'badge bg-success' : 'badge bg-danger')"
                                   th:text="${commande.statut}">
                             </span>
                         </dd>
@@ -48,49 +45,34 @@
                         <dd class="col-7" th:text="${commande.user.username}"></dd>
 
                         <dt class="col-5 text-muted">Total</dt>
-                        <dd class="col-7">
-                            <span class="fw-bold text-success fs-5"
-                                  th:text="${#numbers.formatDecimal(commande.total, 1, 2)} + ' MAD'">
-                            </span>
-                        </dd>
+                        <dd class="col-7 fw-bold text-success fs-5"
+                            th:text="${#numbers.formatDecimal(commande.total,1,2)} + ' MAD'"></dd>
                     </dl>
                 </div>
-                <!-- Actions sur la commande -->
-                <div class="card-footer bg-white d-grid gap-2"
-                     th:if="${commande.statut == 'EN_COURS'}">
-                    <a th:href="@{/commandes/{id}/valider(id=${commande.id})}"
-                       class="btn btn-success"
-                       onclick="return confirm('Valider cette commande ? Les stocks seront décrémentés.')">
-                        <i class="bi bi-check-circle me-1"></i>Valider la commande
-                    </a>
-                    <a th:href="@{/commandes/{id}/annuler(id=${commande.id})}"
-                       class="btn btn-outline-danger">
-                        <i class="bi bi-x-circle me-1"></i>Annuler la commande
+
+                <!-- Bouton Modifier → panier, seulement si EN_COURS -->
+                <div class="card-footer bg-white" th:if="${commande.statut == 'EN_COURS'}">
+                    <a th:href="@{/panier}" class="btn btn-warning w-100">
+                        <i class="bi bi-pencil me-1"></i>Modifier dans le panier
                     </a>
                 </div>
             </div>
         </div>
 
-        <!-- ── Colonne droite : Articles + ajout ────────────────────────────── -->
+        <!-- Articles en lecture seule -->
         <div class="col-md-8">
-
-            <!-- Tableau des articles de la commande -->
-            <div class="card border-0 shadow-sm mb-3">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-light fw-semibold">
-                    <i class="bi bi-box-seam me-2"></i>
-                    Articles dans la commande
-                    <span class="badge bg-secondary ms-2" th:text="${#lists.size(commande.items)}"></span>
+                    <i class="bi bi-box-seam me-2"></i>Articles
+                    <span class="badge bg-secondary ms-2"
+                          th:text="${#lists.size(commande.items)}"></span>
                 </div>
                 <div class="card-body p-0">
-
-                    <!-- Aucun article -->
                     <div th:if="${#lists.isEmpty(commande.items)}"
                          class="text-center py-4 text-muted">
                         <i class="bi bi-inbox fs-2 d-block mb-2"></i>
-                        Aucun article. Utilisez le formulaire ci-dessous pour en ajouter.
+                        Aucun article dans cette commande.
                     </div>
-
-                    <!-- Liste des articles -->
                     <table th:if="${!#lists.isEmpty(commande.items)}"
                            class="table table-hover align-middle mb-0">
                         <thead class="table-light">
@@ -99,94 +81,31 @@
                                 <th class="text-end">Prix unit.</th>
                                 <th class="text-center">Qté</th>
                                 <th class="text-end">Sous-total</th>
-                                <th th:if="${commande.statut == 'EN_COURS'}"></th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr th:each="item : ${commande.items}">
-                                <td>
-                                    <span class="fw-semibold" th:text="${item.article.description}"></span>
-                                </td>
+                                <td th:text="${item.article.description}"></td>
                                 <td class="text-end text-muted"
-                                    th:text="${#numbers.formatDecimal(item.article.prix, 1, 2)} + ' MAD'">
-                                </td>
+                                    th:text="${#numbers.formatDecimal(item.article.prix,1,2)} + ' MAD'"></td>
                                 <td class="text-center">
-                                    <span class="badge bg-secondary" th:text="${item.quantite}"></span>
+                                    <span class="badge bg-secondary"
+                                          th:text="${item.quantite}"></span>
                                 </td>
                                 <td class="text-end fw-bold text-success"
-                                    th:text="${#numbers.formatDecimal(item.sousTotal, 1, 2)} + ' MAD'">
-                                </td>
-                                <!-- Bouton supprimer item : visible seulement si EN_COURS -->
-                                <td th:if="${commande.statut == 'EN_COURS'}">
-                                    <a th:href="@{/commandes/{cid}/supprimer-item/{iid}
-                                               (cid=${commande.id}, iid=${item.id})}"
-                                       class="btn btn-sm btn-outline-danger"
-                                       title="Retirer l'article"
-                                       onclick="return confirm('Retirer cet article de la commande ?')">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
-                                </td>
+                                    th:text="${#numbers.formatDecimal(item.sousTotal,1,2)} + ' MAD'"></td>
                             </tr>
                         </tbody>
-                        <!-- Ligne total -->
                         <tfoot class="table-light">
                             <tr>
                                 <td colspan="3" class="text-end fw-bold">Total :</td>
                                 <td class="text-end fw-bold text-success fs-6"
-                                    th:text="${#numbers.formatDecimal(commande.total, 1, 2)} + ' MAD'">
-                                </td>
-                                <td th:if="${commande.statut == 'EN_COURS'}"></td>
+                                    th:text="${#numbers.formatDecimal(commande.total,1,2)} + ' MAD'"></td>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
             </div>
-
-            <!-- ── Formulaire ajout d'article : visible seulement si EN_COURS ── -->
-            <div th:if="${commande.statut == 'EN_COURS'}"
-                 class="card border-0 shadow-sm border-start border-4 border-primary">
-                <div class="card-header bg-light fw-semibold">
-                    <i class="bi bi-plus-circle me-2 text-primary"></i>Ajouter un article
-                </div>
-                <div class="card-body">
-                    <form th:action="@{/commandes/{id}/ajouter-article(id=${commande.id})}"
-                          method="post" class="row g-3 align-items-end">
-
-                        <!-- Liste déroulante des articles disponibles -->
-                        <div class="col-md-7">
-                            <label class="form-label fw-semibold">Article <span class="text-danger">*</span></label>
-                            <select name="articleId" class="form-select" required>
-                                <option value="">-- Sélectionner un article --</option>
-                                <option th:each="art : ${articles}"
-                                        th:value="${art.id}"
-                                        th:text="${art.description}
-                                                  + '  —  '
-                                                  + ${#numbers.formatDecimal(art.prix, 1, 2)}
-                                                  + ' MAD'
-                                                  + '  (stock : '
-                                                  + ${art.quantiteStock}
-                                                  + ')'">
-                                </option>
-                            </select>
-                        </div>
-
-                        <!-- Quantité -->
-                        <div class="col-md-3">
-                            <label class="form-label fw-semibold">Quantité <span class="text-danger">*</span></label>
-                            <input type="number" name="quantite" class="form-control"
-                                   value="1" min="1" required/>
-                        </div>
-
-                        <!-- Bouton ajouter -->
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100">
-                                <i class="bi bi-plus-lg"></i> Ajouter
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
         </div>
     </div>
 
