@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>Mes Commandes — Mini JEE Shop</title>
+</head>
+<body>
+<section>
+
+    <!-- ── En-tête ──────────────────────────────────────────────────────────── -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-receipt me-2 text-primary"></i>Mes Commandes
+        </h2>
+        <a th:href="@{/commandes/new}" class="btn btn-success">
+            <i class="bi bi-plus-lg me-1"></i>Nouvelle Commande
+        </a>
+    </div>
+
+    <!-- ── Aucune commande ───────────────────────────────────────────────────── -->
+    <div th:if="${#lists.isEmpty(commandes)}" class="text-center py-5 text-muted">
+        <i class="bi bi-receipt fs-1 d-block mb-3"></i>
+        <p class="fs-5">Vous n'avez pas encore de commandes.</p>
+        <a th:href="@{/commandes/new}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Créer ma première commande
+        </a>
+    </div>
+
+    <!-- ── Liste des commandes ──────────────────────────────────────────────── -->
+    <div th:if="${!#lists.isEmpty(commandes)}" class="row g-3">
+        <div th:each="commande : ${commandes}" class="col-12">
+            <div class="card border-0 shadow-sm">
+
+                <!-- En-tête de la carte commande -->
+                <div class="card-header d-flex justify-content-between align-items-center bg-light">
+                    <span class="fw-bold">
+                        <i class="bi bi-receipt me-2"></i>
+                        Commande #<span th:text="${commande.id}"></span>
+                        <span class="text-muted fw-normal ms-2" th:text="'— ' + ${commande.dateCommande}"></span>
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <!-- Badge statut avec couleur dynamique -->
+                        <span th:class="${commande.statut == 'EN_COURS'}  ? 'badge bg-warning text-dark' :
+                                        (${commande.statut == 'VALIDEE'}  ? 'badge bg-success'          :
+                                                                             'badge bg-danger')"
+                              th:text="${commande.statut}">
+                        </span>
+                        <!-- Total de la commande -->
+                        <span class="badge bg-primary fs-6"
+                              th:text="${#numbers.formatDecimal(commande.total, 1, 2)} + ' MAD'">
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Corps : liste des articles -->
+                <div class="card-body">
+                    <p th:if="${#lists.isEmpty(commande.items)}" class="text-muted mb-0 small">
+                        <i class="bi bi-info-circle me-1"></i>Aucun article dans cette commande.
+                    </p>
+                    <ul th:if="${!#lists.isEmpty(commande.items)}" class="list-unstyled mb-0">
+                        <li th:each="item, stat : ${commande.items}"
+                            th:class="${stat.last} ? 'd-flex justify-content-between py-2' :
+                                                     'd-flex justify-content-between py-2 border-bottom'">
+                            <span>
+                                <i class="bi bi-box me-2 text-muted"></i>
+                                <span th:text="${item.article.description}" class="fw-semibold"></span>
+                                <span class="text-muted ms-2">
+                                    × <span th:text="${item.quantite}"></span>
+                                    à <span th:text="${#numbers.formatDecimal(item.article.prix, 1, 2)} + ' MAD'"></span>
+                                </span>
+                            </span>
+                            <span class="fw-bold text-success"
+                                  th:text="${#numbers.formatDecimal(item.sousTotal, 1, 2)} + ' MAD'">
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Pied de carte : actions -->
+                <div class="card-footer bg-white d-flex gap-2">
+                    <a th:href="@{/commandes/{id}(id=${commande.id})}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>Détails / Modifier
+                    </a>
+                    <!-- Valider : seulement si EN_COURS -->
+                    <a th:if="${commande.statut == 'EN_COURS'}"
+                       th:href="@{/commandes/{id}/valider(id=${commande.id})}"
+                       class="btn btn-sm btn-success"
+                       onclick="return confirm('Confirmer la validation de cette commande ?')">
+                        <i class="bi bi-check-lg me-1"></i>Valider
+                    </a>
+                    <!-- Annuler : seulement si EN_COURS -->
+                    <a th:if="${commande.statut == 'EN_COURS'}"
+                       th:href="@{/commandes/{id}/annuler(id=${commande.id})}"
+                       class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-x-lg me-1"></i>Annuler
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</section>
+</body>
+</html>
