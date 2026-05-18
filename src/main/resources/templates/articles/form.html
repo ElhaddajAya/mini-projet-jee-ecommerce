@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
 <head>
     <meta charset="UTF-8">
     <title>Article</title>
@@ -8,9 +10,30 @@
 </head>
 <body>
 
+
+<!-- Navbar -->
 <nav class="navbar navbar-dark bg-primary px-3">
     <span class="navbar-brand">Mini Projet JEE</span>
+
+    <div class="d-flex align-items-center gap-3">
+
+        <!-- sec:authorize vérifie le rôle de l'utilisateur connecté -->
+		<span class="text-white fw-bold" sec:authorize="hasRole('ADMIN')">Administrateur</span>
+
+        <!-- Nom de l'utilisateur connecté -->
+        <span class="text-white">
+            <sec:authentication property="name"/>
+        </span>
+
+        <!-- Bouton déconnexion via POST -->
+        <form th:action="@{/logout}" method="post" class="d-inline">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            <button type="submit" class="btn btn-outline-light btn-sm">Déconnexion</button>
+        </form>
+
+    </div>
 </nav>
+
 
 <div class="container mt-4">
     <div class="row justify-content-center">
