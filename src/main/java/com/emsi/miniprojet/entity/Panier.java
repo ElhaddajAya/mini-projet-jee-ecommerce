@@ -22,4 +22,14 @@ public class Panier {
     // Les commandes dans ce panier
     @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL)
     private List<Commande> commandes;
+    
+	 // Total de toutes les commandes EN_COURS dans le panier
+	 // Appelé dans panier.html : ${panier.totalGeneral}
+	 public Double getTotalGeneral() {
+	     if (commandes == null) return 0.0;
+	     return commandes.stream()
+	             .filter(c -> "EN_COURS".equals(c.getStatut()))
+	             .mapToDouble(Commande::getTotal)
+	             .sum();
+	 }
 }

@@ -43,4 +43,9 @@ public class ArticleService {
     public List<Article> searchArticles(String description, Double prixMax, Integer stockMin) {
         return articleRepository.searchArticles(description, prixMax, stockMin);
     }
+    
+    // Alias de getAllArticles() — utilisé par CommandeController
+    public List<Article> findAll() {
+        return articleRepository.findAll();
+    }
 }
